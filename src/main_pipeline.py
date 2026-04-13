@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from newspaper_pipeline.pipeline import ExtractionPipeline
 from newspaper_pipeline.steps.image_fetch import LocalDirectoryImageFetcher
 from newspaper_pipeline.steps.layout_detection import DellOnnxLayoutDetector
-from newspaper_pipeline.steps.ocr import PaddleOcrEngine
+from newspaper_pipeline.steps.ocr import NoopOcrEngine
 from newspaper_pipeline.steps.preprocessing import NoopPreprocessor
 from newspaper_pipeline.steps.persistence import MelissaJsonPersistenceSink
 
@@ -33,10 +33,7 @@ def build_pipeline() -> ExtractionPipeline:
             save_debug_crops=True,
             debug_output_dir=repo_root / "outputs" / "preprocess_debug",
         ),
-        ocr_engine=PaddleOcrEngine(
-            lang="en",
-            use_angle_cls=True,
-        ),
+        ocr_engine=NoopOcrEngine(),
         persistence_sink=MelissaJsonPersistenceSink(
             output_dir=repo_root / "outputs"
         ),

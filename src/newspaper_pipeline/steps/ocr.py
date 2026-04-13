@@ -18,122 +18,20 @@ class NotImplementedOcrEngine:
         raise NotImplementedError("Provide an OcrEngine implementation.")
 
 
-class PaddleOcrEngine:
-    """
-    OCR with PaddleOCR over layout regions.
-
-    Runs OCR per region crop and returns one `OcrResult` per region.
-    """
-
-    def __init__(
-        self,
-        lang: str = "en",
-        use_angle_cls: bool = True,
-    ) -> None:
-        self.lang = lang
-        self.use_angle_cls = use_angle_cls
-        self._ocr = None
+class NoopOcrEngine:
+    """No-op OCR stage for fast pipeline/debug runs."""
 
     def recognize(self, image: ImageRecord, regions: list[PreprocessedRegion]) -> list[OcrResult]:
-        if not regions:
-            return []
-
-        ocr = self._get_ocr()
-
         outputs: list[OcrResult] = []
         for region in regions:
-            if region.image_bgr is None or region.image_bgr.size == 0:
-                outputs.append(OcrResult(region_id=region.region_id, text="", confidence=None))
-                continue
-
-            prediction = ocr.ocr(region.image_bgr)
-            text, confidence = self._parse_prediction(prediction)
             outputs.append(
                 OcrResult(
                     region_id=region.region_id,
-                    text=text,
-                    confidence=confidence,
+                    text="",
+                    confidence=None,
                 )
             )
         return outputs
-
-    def _get_ocr(self):
-        if self._ocr is not None:
-            return self._ocr
-        try:
-            from paddleocr import PaddleOCR
-        except ImportError as exc:
-            raise ImportError(
-                "PaddleOcrEngine requires `paddleocr`. Install it in your environment first."
-            ) from exc
-        self._ocr = PaddleOCR(
-            use_angle_cls=self.use_angle_cls,
-            lang=self.lang,
-        )
-        return self._ocr
-
-    @staticmethod
-    def _parse_prediction(prediction) -> tuple[str, float | None]:
-        """
-        Convert PaddleOCR output to (text, confidence) across PaddleOCR response variants.
-        """
-        texts: list[str] = []
-        scores: list[float] = []
-
-        def add_text_score(text, score=None):
-            t = str(text).strip() if text is not None else ""
-            if not t:
-                return
-            texts.append(t)
-            try:
-                if score is not None:
-                    scores.append(float(score))
-            except (TypeError, ValueError):
-                pass
-
-        # Variant A: dict-style output (PaddleOCR v3+ style)
-        if isinstance(prediction, dict):
-            rec_texts = prediction.get("rec_texts") or prediction.get("texts") or []
-            rec_scores = prediction.get("rec_scores") or prediction.get("scores") or []
-            if rec_texts:
-                for i, t in enumerate(rec_texts):
-                    s = rec_scores[i] if i < len(rec_scores) else None
-                    add_text_score(t, s)
-                return "\n".join(texts), (sum(scores) / len(scores) if scores else None)
-
-        # Variant B: list of dict items
-        if isinstance(prediction, list) and prediction and isinstance(prediction[0], dict):
-            for item in prediction:
-                if not isinstance(item, dict):
-                    continue
-                rec_texts = item.get("rec_texts") or item.get("texts") or []
-                rec_scores = item.get("rec_scores") or item.get("scores") or []
-                if rec_texts:
-                    for i, t in enumerate(rec_texts):
-                        s = rec_scores[i] if i < len(rec_scores) else None
-                        add_text_score(t, s)
-                    continue
-                add_text_score(item.get("rec_text") or item.get("text"), item.get("rec_score") or item.get("score"))
-            if texts:
-                return "\n".join(texts), (sum(scores) / len(scores) if scores else None)
-
-        # Variant C: classic format [[ [box], (text, score) ], ...]
-        lines = prediction[0] if isinstance(prediction, list) and prediction else []
-        for line in lines or []:
-            if not line:
-                continue
-            if isinstance(line, dict):
-                add_text_score(line.get("rec_text") or line.get("text"), line.get("rec_score") or line.get("score"))
-                continue
-            if isinstance(line, (list, tuple)) and len(line) >= 2:
-                content = line[1]
-                if isinstance(content, (list, tuple)) and len(content) >= 2:
-                    add_text_score(content[0], content[1])
-                    continue
-                if isinstance(content, str):
-                    add_text_score(content, None)
-
-        return "\n".join(texts), (sum(scores) / len(scores) if scores else None)
 
 
 class KrakenOcrEngine:

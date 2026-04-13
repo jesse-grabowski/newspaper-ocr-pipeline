@@ -326,6 +326,21 @@ class LocalDirectoryImageFetcher:
 
     @staticmethod
     def _load_image_array(image_path: Path):
+        if image_path.suffix.lower() == ".jp2":
+            try:
+                import numpy as np
+                from PIL import Image
+            except ImportError as exc:
+                raise ImportError(
+                    "JPEG2000 (.jp2) decoding requires Pillow and NumPy. Install with: pip install pillow numpy"
+                ) from exc
+
+            with Image.open(image_path) as pil_image:
+                rgb = pil_image.convert("RGB")
+                rgb_array = np.asarray(rgb)
+            # Pipeline uses OpenCV-style BGR arrays.
+            return rgb_array[:, :, ::-1].copy()
+
         try:
             import cv2
         except ImportError as exc:

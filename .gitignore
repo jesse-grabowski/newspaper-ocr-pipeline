@@ -21,6 +21,7 @@ env/
 input_images/
 outputs/
 weights/
+PaddleOCR/
 
 # OS
 .DS_Store
