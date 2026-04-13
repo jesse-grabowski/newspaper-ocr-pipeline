@@ -27,11 +27,12 @@ class ImageMetadata:
 
 @dataclass(frozen=True)
 class ImageRecord:
-    """Input page image and normalized metadata."""
+    """Input page image, decoded pixel data, and normalized metadata."""
 
     image_id: str
     source: str
     local_path: Path | None = None
+    image_bgr: Any | None = None
     metadata: ImageMetadata | None = None
 
 
@@ -42,6 +43,17 @@ class LayoutRegion:
     region_id: str
     label: str
     bbox: tuple[int, int, int, int]  # (x0, y0, x1, y1)
+    score: float | None = None
+
+
+@dataclass(frozen=True)
+class PreprocessedRegion:
+    """Region crop emitted by preprocessing stage."""
+
+    region_id: str
+    label: str
+    bbox: tuple[int, int, int, int]
+    image_bgr: Any
     score: float | None = None
 
 

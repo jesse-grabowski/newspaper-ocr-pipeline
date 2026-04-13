@@ -87,10 +87,12 @@ class LocalDirectoryImageFetcher:
         for path in image_paths:
             folder_meta = self._load_folder_metadata(path.parent)
             image_meta = self._build_image_metadata(path, folder_meta)
+            image_bgr = self._load_image_array(path)
             image_record = ImageRecord(
                 image_id=image_meta.article_id_prefix,
                 source=str(path),
                 local_path=path,
+                image_bgr=image_bgr,
                 metadata=image_meta,
             )
             processing_key = build_processing_key(image_record)
@@ -321,3 +323,17 @@ class LocalDirectoryImageFetcher:
     @staticmethod
     def _infer_numeric_page_number(stem: str) -> int | None:
         return int(stem) if stem.isdigit() else None
+
+    @staticmethod
+    def _load_image_array(image_path: Path):
+        try:
+            import cv2
+        except ImportError as exc:
+            raise ImportError(
+                "LocalDirectoryImageFetcher requires `opencv-python` (cv2) to decode images."
+            ) from exc
+
+        image = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
+        if image is None:
+            raise ValueError(f"Failed to decode image file: {image_path}")
+        return image
