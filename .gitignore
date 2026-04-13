@@ -8,6 +8,7 @@ __pycache__/
 .venv/
 venv/
 env/
+.env
 
 # IDE
 .idea/
@@ -19,6 +20,7 @@ env/
 # Local data inputs/outputs
 input_images/
 outputs/
+weights/
 
 # OS
 .DS_Store

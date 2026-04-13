@@ -1,12 +1,21 @@
 from __future__ import annotations
 
+import os
+
 from newspaper_pipeline.pipeline import ExtractionPipeline
 from newspaper_pipeline.steps.image_fetch import LocalDirectoryImageFetcher
+from newspaper_pipeline.steps.layout_detection import DocLayoutYoloLayoutDetector
 
 
 def build_pipeline() -> ExtractionPipeline:
     """Create pipeline with interface stubs. Swap in concrete implementations."""
-    return ExtractionPipeline(image_fetcher=LocalDirectoryImageFetcher())
+    model_source = os.environ.get("DOCLAYOUT_YOLO_MODEL", "")
+    if not model_source:
+        return ExtractionPipeline(image_fetcher=LocalDirectoryImageFetcher())
+    return ExtractionPipeline(
+        image_fetcher=LocalDirectoryImageFetcher(),
+        layout_detector=DocLayoutYoloLayoutDetector(model_source=model_source),
+    )
 
 
 def main(source: str) -> None:

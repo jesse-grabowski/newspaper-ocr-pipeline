@@ -46,15 +46,6 @@ class LayoutRegion:
 
 
 @dataclass(frozen=True)
-class LegibilityResult:
-    """Legibility classification for a region."""
-
-    region_id: str
-    label: str
-    score: float | None = None
-
-
-@dataclass(frozen=True)
 class OcrResult:
     """Extracted text for a region."""
 

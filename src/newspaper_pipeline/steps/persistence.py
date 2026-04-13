@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from ..models import ImageRecord, LayoutRegion, LegibilityResult, OcrResult, PersistedRecord
+from ..models import ImageRecord, LayoutRegion, OcrResult, PersistedRecord
 
 
 class PersistenceSink(Protocol):
@@ -12,7 +12,6 @@ class PersistenceSink(Protocol):
         self,
         image: ImageRecord,
         regions: list[LayoutRegion],
-        legibility: list[LegibilityResult],
         ocr: list[OcrResult],
     ) -> PersistedRecord:
         """Persist pipeline outputs for one image."""
@@ -23,7 +22,6 @@ class NotImplementedPersistenceSink:
         self,
         image: ImageRecord,
         regions: list[LayoutRegion],
-        legibility: list[LegibilityResult],
         ocr: list[OcrResult],
     ) -> PersistedRecord:
         raise NotImplementedError("Provide a PersistenceSink implementation.")
