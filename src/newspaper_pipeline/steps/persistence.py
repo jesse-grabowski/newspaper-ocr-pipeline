@@ -29,9 +29,9 @@ class NotImplementedPersistenceSink:
         raise NotImplementedError("Provide a PersistenceSink implementation.")
 
 
-class MelissaJsonPersistenceSink:
+class DellJsonPersistenceSink:
     """
-    Persist results in the AmericanStories/Melissa Dell JSON-like shape.
+    Persist results in the AmericanStories/Dell JSON-like shape.
     """
 
     def __init__(self, output_dir: Path | None = None) -> None:
@@ -45,11 +45,11 @@ class MelissaJsonPersistenceSink:
         regions: list[LayoutRegion],
         ocr: list[OcrResult],
     ) -> PersistedRecord:
-        ocr_by_region = {item.region_id: item for item in ocr}
+        text_by_region = self._aggregate_text_by_region_id(ocr)
         bboxes = []
         for idx, region in enumerate(regions):
             x0, y0, x1, y1 = region.bbox
-            text = ocr_by_region.get(region.region_id).text if region.region_id in ocr_by_region else ""
+            text = text_by_region.get(region.region_id, "")
             bbox_data = {
                 "id": idx,
                 "bbox": {"x0": x0, "y0": y0, "x1": x1, "y1": y1},
@@ -76,5 +76,36 @@ class MelissaJsonPersistenceSink:
         return PersistedRecord(
             image_id=image.image_id,
             destination=str(output_path),
-            metadata={"format": "melissa_dell_json"},
+            metadata={"format": "dell_json"},
         )
+
+    def _aggregate_text_by_region_id(self, ocr: list[OcrResult]) -> dict[str, str]:
+        """
+        Merge OCR texts back to parent layout region id.
+
+        Line-sliced region ids follow `<region_id>/line_<n>`.
+        """
+        bucket: dict[str, list[tuple[int, str]]] = {}
+        for item in ocr:
+            region_key, line_idx = self._split_region_and_line(item.region_id)
+            text = (item.text or "").strip()
+            if not text:
+                continue
+            bucket.setdefault(region_key, []).append((line_idx, text))
+
+        merged: dict[str, str] = {}
+        for region_key, values in bucket.items():
+            values.sort(key=lambda x: x[0])
+            merged[region_key] = "\n".join(text for _, text in values)
+        return merged
+
+    def _split_region_and_line(self, region_id: str) -> tuple[str, int]:
+        marker = "/line_"
+        if marker not in region_id:
+            return region_id, 0
+
+        base, suffix = region_id.rsplit(marker, 1)
+        try:
+            return base, int(suffix)
+        except ValueError:
+            return base, 0

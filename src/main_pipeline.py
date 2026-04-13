@@ -8,9 +8,9 @@ from dotenv import load_dotenv
 from newspaper_pipeline.pipeline import ExtractionPipeline
 from newspaper_pipeline.steps.image_fetch import LocalDirectoryImageFetcher
 from newspaper_pipeline.steps.layout_detection import DellOnnxLayoutDetector
-from newspaper_pipeline.steps.ocr import NoopOcrEngine
+from newspaper_pipeline.steps.ocr import OllamaVisionOcrEngine
 from newspaper_pipeline.steps.preprocessing import NoopPreprocessor
-from newspaper_pipeline.steps.persistence import MelissaJsonPersistenceSink
+from newspaper_pipeline.steps.persistence import DellJsonPersistenceSink
 
 
 def build_pipeline() -> ExtractionPipeline:
@@ -27,14 +27,20 @@ def build_pipeline() -> ExtractionPipeline:
             conf_threshold=0.05,
             iou_threshold=0.10,
             keep_labels={"article"},
-            debug_output_dir=repo_root / "outputs" / "layout_debug",
+            debug_output_dir=None,
         ),
         preprocessor=NoopPreprocessor(
-            save_debug_crops=True,
-            debug_output_dir=repo_root / "outputs" / "preprocess_debug",
+            save_debug_crops=False,
+            debug_output_dir=None,
         ),
-        ocr_engine=NoopOcrEngine(),
-        persistence_sink=MelissaJsonPersistenceSink(
+        ocr_engine=OllamaVisionOcrEngine(
+            model=os.environ.get("OLLAMA_MODEL", "gemma4:e4b"),
+            host=os.environ.get("OLLAMA_HOST", "http://localhost:11434"),
+            temperature=0.0,
+            timeout_seconds=120,
+            keep_alive="30m",
+        ),
+        persistence_sink=DellJsonPersistenceSink(
             output_dir=repo_root / "outputs"
         ),
     )

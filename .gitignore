@@ -20,7 +20,6 @@ env/
 # Local data inputs/outputs
 input_images/
 outputs/
-weights/
 PaddleOCR/
 
 # OS
