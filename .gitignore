@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual/env tooling
+.conda/
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+
+# Local pipeline runtime state
+.pipeline_state/
+
+# Local data inputs/outputs
+input_images/
+outputs/
+
+# OS
+.DS_Store
