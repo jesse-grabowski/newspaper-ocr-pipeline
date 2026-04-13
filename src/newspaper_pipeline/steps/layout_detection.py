@@ -33,6 +33,12 @@ class DocLayoutYoloLayoutDetector:
         "Section-header": "headline",
         "Caption": "image_caption",
         "Picture": "photograph",
+        "Table": "table",
+        "Footnote": "footnote",
+        "Formula": "formula",
+        "List-item": "list_item",
+        "Page-header": "page_header",
+        "Page-footer": "page_footer",
     }
 
     def __init__(
@@ -41,6 +47,7 @@ class DocLayoutYoloLayoutDetector:
         conf_threshold: float = 0.25,
         iou_threshold: float = 0.45,
         class_map: dict[str, str] | None = None,
+        keep_labels: set[str] | None = None,
     ) -> None:
         if not model_source:
             raise ValueError("model_source is required for DocLayoutYoloLayoutDetector")
@@ -49,6 +56,7 @@ class DocLayoutYoloLayoutDetector:
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
         self.class_map = class_map or self.DEFAULT_CLASS_MAP
+        self.keep_labels = keep_labels
         self._model = None
 
     def detect(self, image: ImageRecord) -> list[LayoutRegion]:
@@ -74,6 +82,8 @@ class DocLayoutYoloLayoutDetector:
             cls_idx = int(box.cls.item())
             raw_label = names.get(cls_idx, str(cls_idx))
             label = self.class_map.get(raw_label, raw_label)
+            if self.keep_labels is not None and label not in self.keep_labels:
+                continue
 
             x0, y0, x1, y1 = [int(round(v)) for v in box.xyxy[0].tolist()]
             score = float(box.conf.item()) if box.conf is not None else None
