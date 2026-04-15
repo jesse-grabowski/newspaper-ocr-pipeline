@@ -6,6 +6,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from newspaper_pipeline.pipeline import ExtractionPipeline
+from newspaper_pipeline.steps.filtering import DellLegibilityRegionFilter
 from newspaper_pipeline.steps.image_fetch import LocalDirectoryImageFetcher
 from newspaper_pipeline.steps.layout_detection import DellOnnxLayoutDetector
 from newspaper_pipeline.steps.ocr import OllamaVisionOcrEngine
@@ -28,6 +29,13 @@ def build_pipeline() -> ExtractionPipeline:
             iou_threshold=0.10,
             keep_labels={"article"},
             debug_output_dir=None,
+        ),
+        region_filter=DellLegibilityRegionFilter(
+            model_path=os.environ.get(
+                "DELL_LEGIBILITY_MODEL",
+                str(repo_root / "weights" / "legibility_model_new.onnx"),
+            ),
+            drop_labels={"illegible"},
         ),
         preprocessor=NoopPreprocessor(
             save_debug_crops=False,

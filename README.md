@@ -34,6 +34,7 @@ cp .env.template .env
 Then edit `.env`:
 ```bash
 DELL_LAYOUT_MODEL=/absolute/path/to/layout_model_new.onnx
+DELL_LEGIBILITY_MODEL=/absolute/path/to/legibility_model_new.onnx
 OLLAMA_MODEL=gemma4:e4b
 OLLAMA_HOST=http://localhost:11434
 ```
@@ -41,10 +42,11 @@ OLLAMA_HOST=http://localhost:11434
 ## 4) Model Weights
 Expected layout model file:
 - `weights/layout_model_new.onnx`
+- `weights/legibility_model_new.onnx`
 
 You can either:
-- keep this default path, or
-- point `DELL_LAYOUT_MODEL` to a different location.
+- keep these default paths, or
+- point `DELL_LAYOUT_MODEL` / `DELL_LEGIBILITY_MODEL` to different locations.
 
 ## 5) Input and Run
 Put images under:

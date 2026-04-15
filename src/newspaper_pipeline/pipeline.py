@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import traceback
 
 from .models import PersistedRecord
+from .steps.filtering import NoopRegionFilter, RegionFilter
 from .steps.image_fetch import ImageFetcher, NotImplementedImageFetcher
 from .steps.layout_detection import LayoutDetector, NotImplementedLayoutDetector
 from .steps.ocr import OcrEngine, NotImplementedOcrEngine
@@ -18,16 +19,18 @@ class ExtractionPipeline:
 
     image_fetcher: ImageFetcher = NotImplementedImageFetcher()
     layout_detector: LayoutDetector = NotImplementedLayoutDetector()
+    region_filter: RegionFilter = NoopRegionFilter()
     preprocessor: Preprocessor = NoopPreprocessor()
     ocr_engine: OcrEngine = NotImplementedOcrEngine()
     persistence_sink: PersistenceSink = NotImplementedPersistenceSink()
     continue_on_error: bool = True
 
     def run(self, source: str) -> Iterator[PersistedRecord]:
-        """Stream persisted records: fetch -> layout -> preprocessing -> OCR -> persistence."""
+        """Stream persisted records: fetch -> layout -> filter -> preprocessing -> OCR -> persistence."""
         for image in self.image_fetcher.fetch(source):
             try:
                 regions = self.layout_detector.detect(image)
+                regions = self.region_filter.filter(image, regions)
                 preprocessed_regions = self.preprocessor.preprocess(image, regions)
                 ocr_results = self.ocr_engine.recognize(image, preprocessed_regions)
                 persisted = self.persistence_sink.persist(image, regions, ocr_results)
