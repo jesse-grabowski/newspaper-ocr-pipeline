@@ -59,3 +59,35 @@ python3 src/main_pipeline.py
 
 Outputs are written to:
 - `outputs/`
+
+## 6) Docker (Build + Run)
+This container installs all Python/system dependencies and runs the pipeline script.
+Ollama is **not** installed in the container; it must be running on the host.
+
+Build:
+```bash
+docker build -t newspaper-extractor:latest .
+```
+
+Run on macOS/Windows:
+```bash
+mkdir -p outputs .pipeline_state
+docker run --rm \
+  -e OLLAMA_HOST=http://host.docker.internal:11434 \
+  -v "$PWD/input_images:/app/input_images:ro" \
+  -v "$PWD/outputs:/app/outputs" \
+  -v "$PWD/.pipeline_state:/app/.pipeline_state" \
+  newspaper-extractor:latest
+```
+
+Run on Linux:
+```bash
+mkdir -p outputs .pipeline_state
+docker run --rm \
+  --add-host host.docker.internal:host-gateway \
+  -e OLLAMA_HOST=http://host.docker.internal:11434 \
+  -v "$PWD/input_images:/app/input_images:ro" \
+  -v "$PWD/outputs:/app/outputs" \
+  -v "$PWD/.pipeline_state:/app/.pipeline_state" \
+  newspaper-extractor:latest
+```

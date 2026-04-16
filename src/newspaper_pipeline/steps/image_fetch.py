@@ -87,6 +87,16 @@ class LocalDirectoryImageFetcher:
         for path in image_paths:
             folder_meta = self._load_folder_metadata(path.parent)
             image_meta = self._build_image_metadata(path, folder_meta)
+            image_record = ImageRecord(
+                image_id=image_meta.article_id_prefix,
+                source=str(path),
+                local_path=path,
+                image_bgr=None,
+                metadata=image_meta,
+            )
+            processing_key = build_processing_key(image_record)
+            if processing_key in self._success_keys:
+                continue
             image_bgr = self._load_image_array(path)
             image_record = ImageRecord(
                 image_id=image_meta.article_id_prefix,
@@ -95,9 +105,6 @@ class LocalDirectoryImageFetcher:
                 image_bgr=image_bgr,
                 metadata=image_meta,
             )
-            processing_key = build_processing_key(image_record)
-            if processing_key in self._success_keys:
-                continue
             yield image_record
 
     def report_status(

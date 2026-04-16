@@ -81,8 +81,11 @@ class OllamaVisionOcrEngine:
                 png_bytes = self._encode_crop_to_png_bytes(region.image_bgr)
                 crop_b64 = base64.b64encode(png_bytes).decode("ascii")
                 text = self._chat_ocr(crop_b64)
-            except Exception:
-                text = ""
+            except Exception as exc:
+                page_id = image.metadata.page_id if image.metadata else image.image_id
+                raise RuntimeError(
+                    f"OCR failed for page={page_id}, region={region.region_id}: {exc}"
+                ) from exc
 
             outputs.append(
                 OcrResult(

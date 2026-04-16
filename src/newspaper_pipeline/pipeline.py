@@ -28,6 +28,8 @@ class ExtractionPipeline:
     def run(self, source: str) -> Iterator[PersistedRecord]:
         """Stream persisted records: fetch -> layout -> filter -> preprocessing -> OCR -> persistence."""
         for image in self.image_fetcher.fetch(source):
+            page_status = "success"
+            page_message = "Image processed and persisted."
             try:
                 regions = self.layout_detector.detect(image)
                 regions = self.region_filter.filter(image, regions)
@@ -42,6 +44,8 @@ class ExtractionPipeline:
                 )
                 yield persisted
             except Exception as exc:
+                page_status = "failed"
+                page_message = str(exc)
                 self.image_fetcher.report_status(
                     image=image,
                     status="failed",
@@ -50,3 +54,17 @@ class ExtractionPipeline:
                 )
                 if not self.continue_on_error:
                     raise
+            finally:
+                self._emit_page_progress(
+                    page_id=image.metadata.page_id if image.metadata else image.image_id,
+                    status=page_status,
+                    message=page_message,
+                )
+
+    @staticmethod
+    def _emit_page_progress(page_id: str | None, status: str, message: str | None) -> None:
+        page_label = page_id or "unknown"
+        print(
+            f"[progress] Page {page_label} {status}. "
+            f"{message or ''}".rstrip()
+        )

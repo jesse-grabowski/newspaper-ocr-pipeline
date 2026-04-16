@@ -1,0 +1,14 @@
+.git
+.gitignore
+.idea
+.vscode
+.venv
+.conda
+__pycache__
+*.pyc
+.DS_Store
+.env
+
+# Runtime/local artifacts
+.pipeline_state
+outputs
