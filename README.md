@@ -52,6 +52,22 @@ You can either:
 Put images under:
 - `input_images/`
 
+If your images live in DigitalOcean Spaces, from the repo root run:
+```bash
+./scripts/sync_spaces_input_images.sh
+```
+
+Optional arguments:
+```bash
+# custom local destination directory
+./scripts/sync_spaces_input_images.sh ./input_images
+
+# sync only a prefix/folder from the bucket
+./scripts/sync_spaces_input_images.sh ./input_images some/prefix
+```
+
+The script prompts for Spaces credentials securely and does not persist them to `~/.aws/credentials`.
+
 Run:
 ```bash
 python3 src/main_pipeline.py
@@ -90,4 +106,21 @@ docker run --rm \
   -v "$PWD/outputs:/app/outputs" \
   -v "$PWD/.pipeline_state:/app/.pipeline_state" \
   newspaper-extractor:latest
+```
+
+## Appendix: Install AWS CLI on Ubuntu
+These commands install AWS CLI v2 (official AWS installer):
+
+```bash
+sudo apt-get update
+sudo apt-get install -y unzip curl
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+aws --version
+```
+
+For ARM Ubuntu machines, use:
+```bash
+curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
 ```
