@@ -42,7 +42,7 @@ def build_pipeline() -> ExtractionPipeline:
             debug_output_dir=None,
         ),
         ocr_engine=OllamaVisionOcrEngine(
-            model=os.environ.get("OLLAMA_MODEL", "gemma4:e4b"),
+            model=os.environ.get("OLLAMA_MODEL", "gemma4:e2b"),
             host=os.environ.get("OLLAMA_HOST", "http://localhost:11434"),
             temperature=0.0,
             timeout_seconds=120,
