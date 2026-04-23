@@ -12,3 +12,4 @@ __pycache__
 # Runtime/local artifacts
 .pipeline_state
 outputs
+input_images
